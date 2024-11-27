@@ -1,0 +1,34 @@
+---
+- hosts: centos1
+  user: sg4544
+  become: yes
+  become_user: oracle
+  gather_facts: false 
+
+  vars:
+      oracle_home: /opt/oracle/product/23ai/dbhomeFree 
+      hostname: ansmaster 
+      service_name: FREE 
+      set_init_mode: sysdba
+      set_init_user: sys
+      user: system
+      password: hello123
+      oracle_env:
+             ORACLE_HOME: "{{ oracle_home }}"
+             LD_LIBRARY_PATH: "{{ oracle_home }}/lib"
+      set_init: False
+      restart_db: False
+
+  tasks:
+
+  - name: Create Application user
+    oracle_user: hostname={{ hostname }} service_name={{ service_name }} mode=normal user={{ user }} password={{ password }} 
+    environment: oracle_env
+
+  - name: Set parameters
+    oracle_parameter: hostname={{ hostname }} service_name={{ service_name }} user={{ set_init_user }} password={{ password }} mode={{ set_init_mode }} name={{ item.name }} value="{{ item.value }}" state={{ item.state }} scope={{ item.scope }}
+    environment: oracle_env
+    with_items: init_parameters
+    when: set_init
+    register: param_change
+
